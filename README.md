@@ -2,6 +2,20 @@
 
 FixNow is a Next.js and TypeScript MVP scaffold for a Sri Lankan, in-house maintenance business. It is not a provider marketplace. Customers make enquiries; FixNow staff follow up, quote, and schedule internal teams.
 
+## WhatsApp booking (public site)
+
+Customers book at `/book` (old `/request-service` links redirect there, keeping `?service=`). The four-step flow is: pick a service and the common issues → pick urgency, a date (next 60 days) and a time window → enter name, phone, address, city, district, landmark and a description → review a live WhatsApp preview and tap **Book on WhatsApp**. That opens `wa.me` with a formatted message (reference like `FN-1028-K4QZ`, service, issues, date/time, contact, location, job details) addressed to the manager. Nothing is stored on the server; the customer presses Send in WhatsApp.
+
+Set the receiving number in `.env` before building (Next inlines `NEXT_PUBLIC_*` at build time):
+
+```dotenv
+NEXT_PUBLIC_WHATSAPP_NUMBER="94771234567"   # international format, no +
+NEXT_PUBLIC_CONTACT_PHONE="+94 77 123 4567"  # optional, shown in footer/contact
+NEXT_PUBLIC_CONTACT_EMAIL="hello@your-company.lk"  # optional
+```
+
+If the number is empty, WhatsApp still opens with the message ready but asks the customer to choose a chat. The message format lives in `src/lib/booking.ts` and the service list with each trade's common issues in `src/lib/services.ts`. Public pages live in the `src/app/(site)` route group with their own header/footer; the admin area does not get the public chrome. The `/api/requests` endpoint and admin screens are unchanged and ready for a future full online booking flow, but the public site no longer posts to them.
+
 ## Start locally
 
 1. Install Node.js 20 or newer and run `npm install`.
@@ -35,7 +49,7 @@ The migration `202610230001_initial` is the baseline for the existing Prisma mod
 ## End-to-end check
 
 1. Sign in at `/admin/login`; the admin homepage is `/admin` and requests are at `/admin/requests`.
-2. Submit `/request-service`; the form displays the `FN-YYYY-NNNN` reference after the request is committed.
+2. Create a request by POSTing to `/api/requests` (the public `/book` page now sends bookings over WhatsApp instead); the API returns the `FN-YYYY-NNNN` reference after the request is committed.
 3. Confirm the request appears at the top of `/admin/requests`. Email shows `SENT` only when Resend accepts it. On failure, the request remains saved and staff can retry after fixing configuration.
 4. Call the customer or open **WhatsApp**, review the prefilled message, and press Send in WhatsApp. Log the contact outcome.
 5. Open the request and create a quotation in LKR. Share the generated customer approval link.
@@ -49,7 +63,8 @@ There is no test-mode email sender in this project. Verify actual email delivery
 
 - Responsive public homepage, navigation, footer, and 20 service categories.
 - Searchable service directory and reusable service detail routes.
-- Request form with server-side validation, SQLite/Prisma persistence, and a sequential request reference inside a database transaction.
+- WhatsApp booking flow at `/book` (service → date & time → details → WhatsApp preview).
+- Request API with server-side validation, SQLite/Prisma persistence, and a sequential request reference inside a database transaction.
 - Password-hashed admin account setup, signed HTTP-only admin cookie, login, and protected request listing.
 - Initial privacy and terms templates, identified as requiring company/legal review.
 

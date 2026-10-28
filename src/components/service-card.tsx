@@ -1,2 +1,20 @@
-import Link from 'next/link'; import * as Icons from 'lucide-react'; import { ArrowUpRight } from 'lucide-react';
-export function ServiceCard({service}:{service:{slug:string;name:string;description:string;icon:string}}){const Icon=(Icons as any)[service.icon]||Icons.Wrench;return <article className="service-card"><span className="service-icon"><Icon size={22}/></span><h3>{service.name}</h3><p>{service.description}</p><div className="card-links"><Link href={`/services/${service.slug}`}>Details <ArrowUpRight size={14}/></Link><Link href={`/request-service?service=${service.slug}`}>Request</Link></div></article>}
+import Link from 'next/link';
+import {ArrowUpRight} from 'lucide-react';
+import {ServiceIcon} from '@/components/icons';
+import type {Service} from '@/lib/services';
+
+export function ServiceCard({service, index}: {service: Service; index: number}) {
+  return (
+    <article className="service-card">
+      <div className="service-card-top">
+        <span className="service-icon"><ServiceIcon name={service.icon} /></span>
+        <span className="mono">{String(index + 1).padStart(2, '0')}</span>
+      </div>
+      <h3><Link href={`/services/${service.slug}`} className="stretched">{service.name}</Link></h3>
+      <p>{service.description}</p>
+      <Link href={`/book?service=${service.slug}`} className="card-book" aria-label={`Book ${service.name}`}>
+        Book <ArrowUpRight size={15} />
+      </Link>
+    </article>
+  );
+}
